@@ -25,8 +25,17 @@ const getAProductsFromDB = async (id: string) => {
   return result;
 };
 
+const getFeaturedProductsFromDB = async () => {
+  const result = await Product.find().limit(4);
+  if (!result.length) {
+    throw new Error('Featured products are not found.');
+  }
+  return result;
+};
+
 export const productService = {
   createNewProductIntoDB,
   getAllProductsFromDB,
   getAProductsFromDB,
+  getFeaturedProductsFromDB,
 };

@@ -54,8 +54,26 @@ const getAProducts: RequestHandler = async (req, res) => {
   }
 };
 
+const getFeaturedProducts: RequestHandler = async (req, res) => {
+  try {
+    const result = await productService.getFeaturedProductsFromDB();
+    res.status(200).json({
+      success: true,
+      message: 'Featured products are retrieved successfully.',
+      data: result,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieved featured products!',
+      error: (err as Error).message,
+    });
+  }
+};
+
 export const productController = {
   createNewProduct,
   getAllProducts,
   getAProducts,
+  getFeaturedProducts,
 };
