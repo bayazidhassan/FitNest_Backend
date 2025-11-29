@@ -33,9 +33,18 @@ const getFeaturedProductsFromDB = async () => {
   return result;
 };
 
+const getAllCategoriesFromDB = async () => {
+  const result = await Product.distinct('category');
+  if (!result.length) {
+    throw new Error('No categories found.');
+  }
+  return result.sort();
+};
+
 export const productService = {
   createNewProductIntoDB,
   getAllProductsFromDB,
   getAProductsFromDB,
   getFeaturedProductsFromDB,
+  getAllCategoriesFromDB,
 };

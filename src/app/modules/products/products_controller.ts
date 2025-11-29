@@ -71,9 +71,27 @@ const getFeaturedProducts: RequestHandler = async (req, res) => {
   }
 };
 
+const getAllCategories: RequestHandler = async (req, res) => {
+  try {
+    const result = await productService.getAllCategoriesFromDB();
+    res.status(200).json({
+      success: true,
+      message: 'Categories are retrieved successfully.',
+      data: result,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieved categories!',
+      error: (err as Error).message,
+    });
+  }
+};
+
 export const productController = {
   createNewProduct,
   getAllProducts,
   getAProducts,
   getFeaturedProducts,
+  getAllCategories,
 };
