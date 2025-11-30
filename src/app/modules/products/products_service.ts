@@ -34,11 +34,31 @@ const getFeaturedProductsFromDB = async () => {
 };
 
 const getAllCategoriesFromDB = async () => {
+  /*
   const result = await Product.distinct('category');
   if (!result.length) {
     throw new Error('No categories found.');
   }
   return result.sort();
+  */
+
+  const categories = await Product.aggregate([
+    {
+      $group: {
+        _id: '$category', // distinct category
+        image: { $first: '$images' }, // take first product's image
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
+
+  if (!categories.length) throw new Error('No categories found.');
+
+  // map to a nicer format
+  return categories.map((c) => ({
+    category: c._id,
+    image: c.image?.[0] || null,
+  }));
 };
 
 export const productService = {
