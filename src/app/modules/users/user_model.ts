@@ -37,7 +37,7 @@ const userSchema = new Schema<TUser>(
     },
     image: {
       type: String,
-      required: [true, 'Image is required.'],
+      //required: [true, 'Image is required.'],
     },
     password: {
       type: String,
