@@ -1,7 +1,8 @@
 import cors from 'cors';
 import express from 'express';
-import router from './app/routes';
 import { globalErrorHandler } from './app/middlewares/globalErrorHandler';
+import notFoundRoute from './app/middlewares/notFoundRoute';
+import router from './app/routes';
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get('/', (req, res) => {
   res.send('FitNest server is running!');
 });
 
-app.use(globalErrorHandler)
+app.use(notFoundRoute);
+app.use(globalErrorHandler);
 
 export default app;
