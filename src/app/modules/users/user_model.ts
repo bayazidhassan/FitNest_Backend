@@ -34,6 +34,7 @@ const userSchema = new Schema<TUser>(
     email: {
       type: String,
       required: [true, 'Email is required.'],
+      unique: true,
     },
     image: {
       type: String,

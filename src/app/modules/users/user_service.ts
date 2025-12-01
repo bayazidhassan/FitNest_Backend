@@ -1,8 +1,20 @@
+import uploadImageToCloudinary from '../../utils/uploadImageToCloudinary';
 import { TUser } from './user_interface';
 import { User } from './user_model';
 
-const registerUserIntoDB = async (payload: TUser) => {
-  const result = await User.create(payload);
+const registerUserIntoDB = async (payload: TUser, buffer?: Buffer) => {
+  let imageUrl: string | undefined;
+
+  if (buffer) {
+    imageUrl = await uploadImageToCloudinary(
+      `${payload.name.firstName} ${payload.name.lastName}`,
+      buffer,
+    );
+  }
+
+  const newUser = { ...payload, image: imageUrl };
+
+  const result = await User.create(newUser);
   if (!result) {
     throw new Error('Failed to register.');
   }

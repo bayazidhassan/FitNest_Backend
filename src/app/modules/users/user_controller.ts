@@ -22,8 +22,15 @@ const registerUser: RequestHandler = async (req, res) => {
 */
 
 const registerUser = catchAsync(async (req, res) => {
-  const user = req.body;
-  const result = await userServices.registerUserIntoDB(user);
+  const { firstName, lastName, confirmPassword, ...rest } = req.body;
+  const user = {
+    name: {
+      firstName,
+      lastName,
+    },
+    ...rest,
+  };
+  const result = await userServices.registerUserIntoDB(user, req.file?.buffer);
   res.status(200).json({
     success: true,
     message: 'Registration is successful.',
