@@ -7,10 +7,7 @@ const registerUserIntoDB = async (payload: TUser, buffer?: Buffer) => {
   let imageUrl: string | undefined;
 
   if (buffer) {
-    imageUrl = await uploadImageToCloudinary(
-      `${payload.name.firstName} ${payload.name.lastName}`,
-      buffer,
-    );
+    imageUrl = await uploadImageToCloudinary(payload.email, buffer);
   }
 
   if (payload.email === config.admin_email) {
