@@ -1,3 +1,4 @@
+import config from '../../config';
 import uploadImageToCloudinary from '../../utils/uploadImageToCloudinary';
 import { TUser } from './user_interface';
 import { User } from './user_model';
@@ -10,6 +11,10 @@ const registerUserIntoDB = async (payload: TUser, buffer?: Buffer) => {
       `${payload.name.firstName} ${payload.name.lastName}`,
       buffer,
     );
+  }
+
+  if (payload.email === config.admin_email) {
+    payload.role = 'admin';
   }
 
   const newUser = { ...payload, image: imageUrl };
