@@ -3,6 +3,8 @@ export type TUserName = {
   lastName: string;
 };
 
+export type TRole = 'admin' | 'user';
+
 export type TUser = {
   name: TUserName;
   address: string;
@@ -10,4 +12,6 @@ export type TUser = {
   email: string;
   image?: string;
   password: string;
+  role: TRole;
+  isDeleted: boolean;
 };

@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { model, Schema } from 'mongoose';
 import config from '../../config';
-import { TUser, TUserName } from './user_interface';
+import { TRole, TUser, TUserName } from './user_interface';
 
 const userNameSchema = new Schema<TUserName>(
   {
@@ -18,6 +18,8 @@ const userNameSchema = new Schema<TUserName>(
     _id: false,
   },
 );
+
+const role: TRole[] = ['admin', 'user'];
 
 const userSchema = new Schema<TUser>(
   {
@@ -46,6 +48,18 @@ const userSchema = new Schema<TUser>(
       type: String,
       required: [true, 'Password is required.'],
       select: false,
+    },
+    role: {
+      type: String,
+      enum: {
+        values: role,
+        message: 'Role must be user or admin',
+      },
+      default: 'user',
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {
