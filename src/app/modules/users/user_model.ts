@@ -45,6 +45,7 @@ const userSchema = new Schema<TUser>(
     password: {
       type: String,
       required: [true, 'Password is required.'],
+      select: false,
     },
   },
   {
@@ -56,7 +57,6 @@ userSchema.pre('save', async function () {
   if (!this.isModified('password')) {
     return;
   }
-
   const hashed = await bcrypt.hash(this.password, Number(config.bcrypt_salt));
   this.password = hashed;
 });
