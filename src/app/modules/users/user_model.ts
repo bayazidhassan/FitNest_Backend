@@ -27,10 +27,6 @@ const userSchema = new Schema<TUser>(
       type: userNameSchema,
       required: [true, 'Name is required.'],
     },
-    address: {
-      type: String,
-      required: [true, 'Address is required'],
-    },
     phone: {
       type: String,
       required: [true, 'Phone no. is required.'],

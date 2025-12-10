@@ -7,7 +7,6 @@ export type TRole = 'admin' | 'user';
 
 export type TUser = {
   name: TUserName;
-  address: string;
   phone: string;
   email: string;
   image?: string;
