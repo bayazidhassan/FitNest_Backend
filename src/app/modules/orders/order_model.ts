@@ -45,7 +45,6 @@ const orderSchema = new Schema<TOrder>(
     },
     comment: {
       type: String,
-      required: false,
     },
     cartItems: {
       type: [cartItemSchema],
