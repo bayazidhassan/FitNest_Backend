@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { TCartItems, TOrder } from './order_interface';
+import { TCartItems, TOrder, TStatus } from './order_interface';
 
 const cartItemSchema = new Schema<TCartItems>(
   {
@@ -12,6 +12,15 @@ const cartItemSchema = new Schema<TCartItems>(
   },
   { _id: false },
 );
+
+const status: TStatus[] = [
+  'pending',
+  'confirmed',
+  'processing',
+  'shipped',
+  'delivered',
+  'cancelled',
+];
 
 const orderSchema = new Schema<TOrder>(
   {
@@ -53,6 +62,14 @@ const orderSchema = new Schema<TOrder>(
     totalPrice: {
       type: Number,
       required: [true, 'Total price is required.'],
+    },
+    status: {
+      type: String,
+      enum: {
+        values: status,
+        message: 'Status must be pending, confirmed, processing, shipped, delivered or cancelled.',
+      },
+      default: 'pending',
     },
   },
   {

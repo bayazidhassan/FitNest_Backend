@@ -7,6 +7,14 @@ export type TCartItems = {
   stock_quantity: number;
 };
 
+export type TStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'processing'
+  | 'shipped'
+  | 'delivered'
+  | 'cancelled';
+
 export type TOrder = {
   firstName: string;
   lastName: string;
@@ -18,4 +26,5 @@ export type TOrder = {
   comment?: string;
   cartItems: TCartItems[];
   totalPrice: number;
+  status: TStatus;
 };
