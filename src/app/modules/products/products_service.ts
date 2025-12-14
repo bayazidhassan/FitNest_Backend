@@ -1,10 +1,23 @@
+import uploadImageToCloudinary from '../../utils/uploadImageToCloudinary';
 import { TProduct } from './products_interface';
 import { Product } from './products_model';
 
-const createNewProductIntoDB = async (payload: TProduct) => {
-  const result = await Product.create(payload);
+const createNewProductIntoDB = async (payload: Omit<TProduct, 'images'>, buffer?: Buffer) => {
+  let imageUrls: string[] = [];
+
+  if (buffer) {
+    const imageUrl = await uploadImageToCloudinary(`${payload.name}-${payload.category}`, buffer);
+    imageUrls.push(imageUrl);
+  }
+
+  const newProduct = {
+    ...payload,
+    images: imageUrls,
+  };
+
+  const result = await Product.create(newProduct);
   if (!result) {
-    throw new Error('Failed to create new product!');
+    throw new Error('Failed to create new product.');
   }
   return result;
 };
@@ -62,9 +75,9 @@ const getAllCategoriesFromDB = async () => {
 };
 
 export const productService = {
-  createNewProductIntoDB,
   getAllProductsFromDB,
   getAProductsFromDB,
   getFeaturedProductsFromDB,
   getAllCategoriesFromDB,
+  createNewProductIntoDB,
 };
