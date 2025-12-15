@@ -10,4 +10,6 @@ router.get('/featuredProducts', productController.getFeaturedProducts);
 router.get('/categories', productController.getAllCategories);
 router.get('/:id', productController.getAProducts);
 
+router.patch('/:id', productController.updateAProduct);
+
 export const productRoutes = router;

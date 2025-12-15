@@ -2,7 +2,10 @@ import uploadImageToCloudinary from '../../utils/uploadImageToCloudinary';
 import { TProduct } from './products_interface';
 import { Product } from './products_model';
 
-const createNewProductIntoDB = async (payload: Omit<TProduct, 'images'>, buffer?: Buffer) => {
+const createNewProductIntoDB = async (
+  payload: Omit<TProduct, 'images | isDeleted'>,
+  buffer?: Buffer,
+) => {
   let imageUrls: string[] = [];
 
   if (buffer) {
@@ -74,10 +77,19 @@ const getAllCategoriesFromDB = async () => {
   }));
 };
 
+const updateAProductIntoDB = async (id: string, payload: Omit<TProduct, 'images'>) => {
+  const result = await Product.findByIdAndUpdate(id, payload, { upsert: true });
+  if (!result) {
+    throw new Error('Failed to update product!');
+  }
+  return result;
+};
+
 export const productService = {
   getAllProductsFromDB,
   getAProductsFromDB,
   getFeaturedProductsFromDB,
   getAllCategoriesFromDB,
   createNewProductIntoDB,
+  updateAProductIntoDB,
 };

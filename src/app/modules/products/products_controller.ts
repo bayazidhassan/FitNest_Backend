@@ -80,10 +80,22 @@ const getAllCategories: RequestHandler = async (req, res) => {
   }
 };
 
+const updateAProduct = catchAsync(async (req, res) => {
+  const id = req.params.id;
+  const data = req.body;
+  const result = await productService.updateAProductIntoDB(id, data);
+  res.status(200).json({
+    success: true,
+    message: 'Product is updated successfully.',
+    data: result,
+  });
+});
+
 export const productController = {
   getAllProducts,
   getAProducts,
   getFeaturedProducts,
   getAllCategories,
   createNewProduct,
+  updateAProduct,
 };
