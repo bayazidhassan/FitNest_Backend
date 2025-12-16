@@ -3,22 +3,24 @@ import { TProduct } from './products_interface';
 import { Product } from './products_model';
 
 const createNewProductIntoDB = async (
-  payload: Omit<TProduct, 'images | isDeleted'>,
-  buffer?: Buffer,
+  payload: Omit<TProduct, 'images' | 'isDeleted'>,
+  buffers?: Buffer[],
 ) => {
   let imageUrls: string[] = [];
 
-  if (buffer) {
-    const imageUrl = await uploadImageToCloudinary(`${payload.name}-${payload.category}`, buffer);
-    imageUrls.push(imageUrl);
+  if (buffers && buffers.length > 0) {
+    imageUrls = await Promise.all(
+      buffers.map((buffer, index) =>
+        uploadImageToCloudinary(`${payload.name}-(${payload.category})-${index + 1}`, buffer),
+      ),
+    );
   }
-
   const newProduct = {
     ...payload,
     images: imageUrls,
   };
-
   const result = await Product.create(newProduct);
+
   if (!result) {
     throw new Error('Failed to create new product.');
   }

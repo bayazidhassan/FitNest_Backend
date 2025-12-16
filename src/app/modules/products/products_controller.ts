@@ -3,7 +3,10 @@ import catchAsync from '../../utils/catchAsync';
 import { productService } from './products_service';
 
 const createNewProduct = catchAsync(async (req, res) => {
-  const result = await productService.createNewProductIntoDB(req.body, req.file?.buffer);
+  const files = req.files as Express.Multer.File[];
+  const imageBuffers = files?.map((file) => file.buffer);
+
+  const result = await productService.createNewProductIntoDB(req.body, imageBuffers);
   res.status(200).json({
     success: true,
     message: 'New product created successfully!',
