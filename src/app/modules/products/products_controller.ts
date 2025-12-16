@@ -83,13 +83,15 @@ const getAllCategories: RequestHandler = async (req, res) => {
   }
 };
 
-const updateAProduct = catchAsync(async (req, res) => {
-  const id = req.params.id;
-  const data = req.body;
-  const result = await productService.updateAProductIntoDB(id, data);
+export const updateAProduct = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const files = req.files as Express.Multer.File[];
+  const removedImages = req.body.removedImages ? req.body.removedImages : [];
+
+  const result = await productService.updateAProductIntoDB(id, req.body, files, removedImages);
   res.status(200).json({
     success: true,
-    message: 'Product is updated successfully.',
+    message: 'Product updated successfully!',
     data: result,
   });
 });

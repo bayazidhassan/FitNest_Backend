@@ -11,7 +11,7 @@ const createNewProductIntoDB = async (
   if (buffers && buffers.length > 0) {
     imageUrls = await Promise.all(
       buffers.map((buffer, index) =>
-        uploadImageToCloudinary(`${payload.name}-(${payload.category})-${index + 1}`, buffer),
+        uploadImageToCloudinary(`${payload.name}-${index + 1}`, buffer),
       ),
     );
   }
@@ -79,12 +79,44 @@ const getAllCategoriesFromDB = async () => {
   }));
 };
 
-const updateAProductIntoDB = async (id: string, payload: Omit<TProduct, 'images'>) => {
-  const result = await Product.findByIdAndUpdate(id, payload, { upsert: true });
-  if (!result) {
-    throw new Error('Failed to update product!');
+const updateAProductIntoDB = async (
+  id: string,
+  payload: Partial<Omit<TProduct, "images" | "isDeleted">>,
+  files?: Express.Multer.File[],
+  removedImages: string[] = [],
+) => {
+  const product = await Product.findById(id);
+  if (!product) throw new Error('Product not found');
+
+  // Remove images
+  if (removedImages.length) {
+    product.images = product.images.filter((img) => !removedImages.includes(img));
   }
-  return result;
+
+  //Add new images
+  if (files && files.length > 0) {
+    const startIndex = product.images.length + 1;
+    const newImageUrls = await Promise.all(
+      files.map((file, index) => {
+        const name = payload.name ?? product.name; // fallback to existing name
+        const category = payload.category ?? product.category; // fallback to existing category
+        return uploadImageToCloudinary(`${name}-${category}-${startIndex + index}`, file.buffer);
+      }),
+    );
+
+    product.images.push(...newImageUrls);
+  }
+
+  // Update other fields
+  const { name, price, category, stock_quantity, description } = payload;
+  if (name !== undefined) product.name = name;
+  if (price !== undefined) product.price = price;
+  if (category !== undefined) product.category = category;
+  if (stock_quantity !== undefined) product.stock_quantity = stock_quantity;
+  if (description !== undefined) product.description = description;
+
+  const updatedProduct = await product.save();
+  return updatedProduct;
 };
 
 export const productService = {
