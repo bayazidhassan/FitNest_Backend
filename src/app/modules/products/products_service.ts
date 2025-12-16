@@ -81,7 +81,7 @@ const getAllCategoriesFromDB = async () => {
 
 const updateAProductIntoDB = async (
   id: string,
-  payload: Partial<Omit<TProduct, "images" | "isDeleted">>,
+  payload: Partial<Omit<TProduct, 'images' | 'isDeleted'>>,
   files?: Express.Multer.File[],
   removedImages: string[] = [],
 ) => {
@@ -119,6 +119,14 @@ const updateAProductIntoDB = async (
   return updatedProduct;
 };
 
+const deleteAProductFromDB = async (id: string) => {
+  const result = await Product.findByIdAndUpdate(id, { isDeleted: true }, { new: true });
+  if (!result) {
+    throw new Error('Failed to delete');
+  }
+  return result;
+};
+
 export const productService = {
   getAllProductsFromDB,
   getAProductsFromDB,
@@ -126,4 +134,5 @@ export const productService = {
   getAllCategoriesFromDB,
   createNewProductIntoDB,
   updateAProductIntoDB,
+  deleteAProductFromDB,
 };

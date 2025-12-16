@@ -12,4 +12,6 @@ router.get('/:id', productController.getAProducts);
 
 router.patch('/:id', upload.array('images', 5), productController.updateAProduct);
 
+router.delete('/:id', productController.deleteAProduct);
+
 export const productRoutes = router;
