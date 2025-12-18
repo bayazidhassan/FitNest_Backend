@@ -11,6 +11,16 @@ const placeOrder = catchAsync(async (req, res) => {
   });
 });
 
+const getOrdersByStatus = catchAsync(async (req, res) => {
+  const result = await orderService.getOrdersByStatusFromDB(req.params.status);
+  res.status(200).json({
+    success: true,
+    message: `All ${req.params.status} orders are retrieved successfully.`,
+    data: result,
+  });
+});
+
 export const orderController = {
   placeOrder,
+  getOrdersByStatus,
 };
