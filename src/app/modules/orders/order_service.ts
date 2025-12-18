@@ -10,6 +10,15 @@ const placeOrderIntoDB = async (payload: TOrder) => {
   return result;
 };
 
+const getOrdersByStatusFromDB = async (status: string) => {
+  const result = await Order.find({ status });
+  if (!result.length) {
+    throw new Error(`${status} orders are not found.`);
+  }
+  return result;
+};
+
 export const orderService = {
   placeOrderIntoDB,
+  getOrdersByStatusFromDB,
 };
