@@ -21,8 +21,6 @@ const getOrdersByStatus = catchAsync(async (req, res) => {
 });
 
 const updateOrderStatus = catchAsync(async (req, res) => {
-  console.log(req.params.id);
-  console.log(req.body);
   const result = await orderService.updateOrderStatusIntoDB(req.params.id, req.body.status);
   res.status(200).json({
     success: true,
