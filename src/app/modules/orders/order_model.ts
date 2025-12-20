@@ -18,6 +18,7 @@ const status: TStatus[] = [
   'confirmed',
   'processing',
   'shipped',
+  'returned',
   'delivered',
   'cancelled',
 ];
@@ -67,7 +68,8 @@ const orderSchema = new Schema<TOrder>(
       type: String,
       enum: {
         values: status,
-        message: 'Status must be pending, confirmed, processing, shipped, delivered or cancelled.',
+        message:
+          'Status must be pending, confirmed, processing, shipped, returned, delivered or cancelled.',
       },
       default: 'pending',
     },
