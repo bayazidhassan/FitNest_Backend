@@ -18,22 +18,26 @@ const getOrdersByStatusFromDB = async (status: string) => {
 };
 
 const updateOrderStatusIntoDB = async (id: string, status: TStatus) => {
-  if (status === 'confirmed') {
-    const session = await mongoose.startSession();
-    try {
-      session.startTransaction();
+  const session = await mongoose.startSession();
 
-      //find cart Items------------------------------------
-      const order = await Order.findById(id).session(session);
-      if (!order) {
-        throw new Error('Order not found.');
-      }
+  try {
+    session.startTransaction();
+
+    //find cart Items------------------------------------
+    const order = await Order.findById(id).session(session);
+    if (!order) {
+      throw new Error('Order not found.');
+    }
+
+    const cartItems = order.cartItems;
+    if (cartItems.length === 0) {
+      throw new Error('Order has no cart items');
+    }
+
+    //====================== CONFIRM ORDER ======================
+    if (status === 'confirmed') {
       if (order.status === 'confirmed') {
         throw new Error('Order already confirmed');
-      }
-      const cartItems = order.cartItems;
-      if (cartItems.length === 0) {
-        throw new Error('Order has no cart items');
       }
 
       //check quantity <= stock_quantity----------------------------
@@ -41,7 +45,6 @@ const updateOrderStatusIntoDB = async (id: string, status: TStatus) => {
       //Trade-off:
       //->Loop : slightly less performance, better error message (product name)
       //->No loop : fewer DB calls, maximum performance
-      /*
       for (const item of cartItems) {
         const product = await Product.findById(item.product_id).session(session);
         if (!product) {
@@ -51,8 +54,8 @@ const updateOrderStatusIntoDB = async (id: string, status: TStatus) => {
           throw new Error(`Insufficient stock for ${product.name}`);
         }
       }
-      */
-      //Better performance-> Instead of looping findById for each product, fetch all products at once: Reduces N DB calls → 1 DB call, Only useful if cart can have many items
+      /*
+      //Better performance than loop-> Instead of looping findById for each product fetch all products at once. Reduces N DB calls → 1 DB call. Only useful if cart can have many items.
       const productIds = cartItems.map((i) => i.product_id);
       const products = await Product.find({ _id: { $in: productIds } }).session(session);
       cartItems.forEach((item) => {
@@ -61,6 +64,7 @@ const updateOrderStatusIntoDB = async (id: string, status: TStatus) => {
         if (item.quantity > product.stock_quantity)
           throw new Error(`Insufficient stock for ${product.name}`);
       });
+      */
 
       //all checks passed → now deduct stock----------------------------
       /*
@@ -110,19 +114,54 @@ const updateOrderStatusIntoDB = async (id: string, status: TStatus) => {
 
       await session.commitTransaction();
       return order;
-    } catch (err: any) {
-      await session.abortTransaction();
-      throw err;
-    } finally {
-      await session.endSession();
     }
-  } else {
+
+    //====================== CANCEL / RETURN ORDER ======================
+    const terminalStatuses: TStatus[] = ['delivered', 'cancelled', 'returned'];
+    if (status === 'cancelled' || status === 'returned') {
+      //no cancel / return allowed from delivered, cancelled or returned
+      if (terminalStatuses.includes(order.status)) {
+        throw new Error('This order cannot be cancelled or returned.');
+      }
+
+      //restock only if stock was already deducted
+      //confirmed, processing, shipped → restock
+      const restockAbleStatuses: TStatus[] = ['confirmed', 'processing', 'shipped'];
+
+      if (restockAbleStatuses.includes(order.status)) {
+        //bulk restock---------------------------------------
+        const bulkOps = cartItems.map((item) => ({
+          updateOne: {
+            filter: { _id: item.product_id },
+            update: { $inc: { stock_quantity: item.quantity } },
+          },
+        }));
+
+        await Product.bulkWrite(bulkOps, { session });
+      }
+
+      //update order status---------------------------------------
+      order.status = status;
+      await order.save({ session });
+
+      await session.commitTransaction();
+      return order;
+    }
+
+    //====================== OTHER STATUS UPDATES ======================
     //non-confirmed status update
-    const result = await Order.findByIdAndUpdate(id, { status }, { new: true });
+    const result = await Order.findByIdAndUpdate(id, { status }, { new: true, session });
     if (!result) {
       throw new Error('Failed to update status.');
     }
+
+    await session.commitTransaction();
     return result;
+  } catch (err: any) {
+    await session.abortTransaction();
+    throw err;
+  } finally {
+    await session.endSession();
   }
 };
 

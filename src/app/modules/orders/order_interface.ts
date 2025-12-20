@@ -12,6 +12,7 @@ export type TStatus =
   | 'confirmed'
   | 'processing'
   | 'shipped'
+  | 'returned'
   | 'delivered'
   | 'cancelled';
 
