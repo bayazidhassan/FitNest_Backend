@@ -13,8 +13,17 @@ const placeOrderIntoDB = async (payload: TOrder) => {
 };
 
 const getOrdersByStatusFromDB = async (status: string) => {
-  const result = await Order.find({ status });
-  return result;
+  if (status === 'cancelled') {
+    //newest first
+    const result = await Order.find({
+      status: { $in: ['cancelled', 'returned'] },
+    }).sort({ createdAt: -1 });
+    return result;
+  } else {
+    //newest first
+    const result = await Order.find({ status }).sort({ createdAt: -1 });
+    return result;
+  }
 };
 
 const updateOrderStatusIntoDB = async (id: string, status: TStatus) => {
