@@ -26,7 +26,9 @@ const getOrdersByStatusFromDB = async (status: string) => {
   }
 };
 
-const updateOrderStatusIntoDB = async (id: string, status: TStatus) => {
+//const updateOrderStatusIntoDB = async (id: string, status: TStatus) => {
+//for -> when an admin clicks a button, you only update the order if it is still in the expected status.
+const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus: TStatus) => {
   const session = await mongoose.startSession();
 
   try {
@@ -37,14 +39,13 @@ const updateOrderStatusIntoDB = async (id: string, status: TStatus) => {
     if (!order) {
       throw new Error('Order not found.');
     }
-
     const cartItems = order.cartItems;
     if (cartItems.length === 0) {
       throw new Error('Order has no cart items');
     }
 
     //====================== CONFIRM ORDER ======================
-    if (status === 'confirmed') {
+    if (toStatus === 'confirmed') {
       if (order.status === 'confirmed') {
         throw new Error('Order already confirmed');
       }
@@ -64,7 +65,7 @@ const updateOrderStatusIntoDB = async (id: string, status: TStatus) => {
         }
       }
       /*
-      //Better performance than loop-> Instead of looping findById for each product fetch all products at once. Reduces N DB calls → 1 DB call. Only useful if cart can have many items.
+      //Better performance than above loop-> Instead of looping findById for each product fetch all products at once. Reduces N DB calls → 1 DB call. Only useful if cart can have many items.
       const productIds = cartItems.map((i) => i.product_id);
       const products = await Product.find({ _id: { $in: productIds } }).session(session);
       cartItems.forEach((item) => {
@@ -113,21 +114,29 @@ const updateOrderStatusIntoDB = async (id: string, status: TStatus) => {
         },
       }));
       const bulkResult = await Product.bulkWrite(bulkOps, { session });
-      if (bulkResult.modifiedCount !== cartItems.length) {
+      //if (bulkResult.modifiedCount !== cartItems.length) {
+      //better than modifiedCount
+      if (bulkResult.matchedCount !== cartItems.length) {
         throw new Error('One or more products are out of stock! Please retry.');
       }
 
       //and now update the order status---------------------------------------
-      order.status = 'confirmed';
-      await order.save({ session });
+      const updatedOrder = await Order.findOneAndUpdate(
+        { _id: id, status: fromStatus },
+        { status: 'confirmed' },
+        { new: true, session },
+      );
+      if (!updatedOrder) {
+        throw new Error('Order was already confirmed or cancelled by another admin.');
+      }
 
       await session.commitTransaction();
-      return order;
+      return updatedOrder;
     }
 
     //====================== CANCEL / RETURN ORDER ======================
     const terminalStatuses: TStatus[] = ['delivered', 'cancelled', 'returned'];
-    if (status === 'cancelled' || status === 'returned') {
+    if (toStatus === 'cancelled' || toStatus === 'returned') {
       //no cancel / return allowed from delivered, cancelled or returned
       if (terminalStatuses.includes(order.status)) {
         throw new Error('This order cannot be cancelled or returned.');
@@ -150,22 +159,32 @@ const updateOrderStatusIntoDB = async (id: string, status: TStatus) => {
       }
 
       //update order status---------------------------------------
-      order.status = status;
-      await order.save({ session });
+      const updatedOrder = await Order.findOneAndUpdate(
+        { _id: id, status: fromStatus },
+        { status: toStatus },
+        { new: true, session },
+      );
+      if (!updatedOrder) {
+        throw new Error('Order was already updated by another admin.');
+      }
 
       await session.commitTransaction();
-      return order;
+      return updatedOrder;
     }
 
     //====================== OTHER STATUS UPDATES ======================
     //non-confirmed status update
-    const result = await Order.findByIdAndUpdate(id, { status }, { new: true, session });
-    if (!result) {
-      throw new Error('Failed to update status.');
+    const updatedOrder = await Order.findByIdAndUpdate(
+      { _id: id, status: fromStatus },
+      { status: toStatus },
+      { new: true, session },
+    );
+    if (!updatedOrder) {
+      throw new Error('Order was already updated by another admin.');
     }
 
     await session.commitTransaction();
-    return result;
+    return updatedOrder;
   } catch (err: any) {
     await session.abortTransaction();
     throw err;
