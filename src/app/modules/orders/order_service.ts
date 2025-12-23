@@ -39,6 +39,19 @@ const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus
     if (!order) {
       throw new Error('Order not found.');
     }
+    const allowedTransitions: Record<TStatus, TStatus[]> = {
+      pending: ['confirmed', 'cancelled'],
+      confirmed: ['processing', 'cancelled'],
+      processing: ['shipped', 'cancelled'],
+      shipped: ['delivered', 'returned'],
+      delivered: [],
+      cancelled: [],
+      returned: [],
+    };
+    if (!allowedTransitions[order.status]?.includes(toStatus)) {
+      throw new Error(`Invalid order status transition: ${order.status} → ${toStatus}`);
+    }
+
     const cartItems = order.cartItems;
     if (cartItems.length === 0) {
       throw new Error('Order has no cart items');
@@ -46,10 +59,6 @@ const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus
 
     //====================== CONFIRM ORDER ======================
     if (toStatus === 'confirmed') {
-      if (order.status === 'confirmed') {
-        throw new Error('Order already confirmed');
-      }
-
       //check quantity <= stock_quantity----------------------------
       //The bulkWrite-filter will check this condition in the next step, so this loop is technically redundant here.
       //Trade-off:
@@ -122,8 +131,8 @@ const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus
 
       //and now update the order status---------------------------------------
       const updatedOrder = await Order.findOneAndUpdate(
-        { _id: id, status: fromStatus },
-        { status: 'confirmed' },
+        { _id: id, status: fromStatus, __v: order.__v },
+        { status: 'confirmed', $inc: { __v: 1 } },
         { new: true, session },
       );
       if (!updatedOrder) {
@@ -135,13 +144,7 @@ const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus
     }
 
     //====================== CANCEL / RETURN ORDER ======================
-    const terminalStatuses: TStatus[] = ['delivered', 'cancelled', 'returned'];
     if (toStatus === 'cancelled' || toStatus === 'returned') {
-      //no cancel / return allowed from delivered, cancelled or returned
-      if (terminalStatuses.includes(order.status)) {
-        throw new Error('This order cannot be cancelled or returned.');
-      }
-
       //restock only if stock was already deducted
       //confirmed, processing, shipped → restock
       const restockAbleStatuses: TStatus[] = ['confirmed', 'processing', 'shipped'];
@@ -160,8 +163,8 @@ const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus
 
       //update order status---------------------------------------
       const updatedOrder = await Order.findOneAndUpdate(
-        { _id: id, status: fromStatus },
-        { status: toStatus },
+        { _id: id, status: fromStatus, __v: order.__v },
+        { status: toStatus, $inc: { __v: 1 } },
         { new: true, session },
       );
       if (!updatedOrder) {
@@ -174,9 +177,9 @@ const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus
 
     //====================== OTHER STATUS UPDATES ======================
     //non-confirmed status update
-    const updatedOrder = await Order.findByIdAndUpdate(
-      { _id: id, status: fromStatus },
-      { status: toStatus },
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: id, status: fromStatus, __v: order.__v },
+      { status: toStatus, $inc: { __v: 1 } },
       { new: true, session },
     );
     if (!updatedOrder) {
