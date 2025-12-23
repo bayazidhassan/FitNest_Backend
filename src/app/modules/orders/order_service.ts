@@ -49,7 +49,7 @@ const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus
       returned: [],
     };
     if (!allowedTransitions[order.status]?.includes(toStatus)) {
-      throw new Error(`Invalid order status transition: ${order.status} → ${toStatus}`);
+      throw new Error(`Order status has already changed by another admin or Invalid order status transition: ${order.status} → ${toStatus}`);
     }
 
     const cartItems = order.cartItems;
