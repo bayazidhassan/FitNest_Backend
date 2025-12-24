@@ -42,14 +42,23 @@ const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus
       throw new Error('Order has no cart items');
     }
 
+    //Fast-exit: improve performance in multi-admin scenario
+    if (toStatus === 'confirmed' && order.status !== fromStatus) {
+      throw new Error(`Order status has already changed. Current status: ${order.status}`);
+    }
+    if (
+      (toStatus === 'cancelled' || toStatus === 'returned') &&
+      ['cancelled', 'returned', 'delivered'].includes(order.status)
+    ) {
+      throw new Error('This order cannot be cancelled or returned.');
+    }
+
     //====================== CONFIRM ORDER ======================
     if (toStatus === 'confirmed') {
       //check quantity <= stock_quantity----------------------------
       /*
       The bulkWrite-filter will check this condition in the next step, so this loop is technically redundant here.
-      Trade-off:
-      ->Loop : slightly less performance, better error message
-      ->bulkWrite : fewer DB calls, maximum performance
+      Trade-off: ->Loop : slightly less performance, better error message. ->bulkWrite : fewer DB calls, maximum performance
       */
       for (const item of cartItems) {
         const product = await Product.findById(item.product_id).session(session);
