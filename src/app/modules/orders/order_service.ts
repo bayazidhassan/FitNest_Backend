@@ -39,18 +39,24 @@ const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus
     }
     const cartItems = order.cartItems;
     if (cartItems.length === 0) {
-      throw new Error('Order has no cart items');
+      throw new Error('Order has no cart items.');
     }
 
     //Fast-exit: improve performance in multi-admin scenario
-    if (toStatus === 'confirmed' && order.status !== fromStatus) {
-      throw new Error(`Order status has already changed. Current status: ${order.status}`);
+    if (order.status !== fromStatus) {
+      throw new Error(`Order status has already changed. Current status: ${order.status}.`);
     }
-    if (
-      (toStatus === 'cancelled' || toStatus === 'returned') &&
-      ['cancelled', 'returned', 'delivered'].includes(order.status)
-    ) {
-      throw new Error('This order cannot be cancelled or returned.');
+    const allowedTransitions: Record<TStatus, readonly TStatus[]> = {
+      pending: ['confirmed', 'cancelled'],
+      confirmed: ['processing', 'cancelled'],
+      processing: ['shipped', 'cancelled'],
+      shipped: ['delivered', 'returned'],
+      delivered: [],
+      cancelled: [],
+      returned: [],
+    };
+    if (!allowedTransitions[fromStatus]?.includes(toStatus)) {
+      throw new Error(`Invalid status change from ${fromStatus} to ${toStatus}`);
     }
 
     //====================== CONFIRM ORDER ======================
@@ -63,10 +69,10 @@ const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus
       for (const item of cartItems) {
         const product = await Product.findById(item.product_id).session(session);
         if (!product) {
-          throw new Error('Product not found');
+          throw new Error('Product not found.');
         }
         if (item.quantity > product.stock_quantity) {
-          throw new Error(`Insufficient stock for ${product.name}`);
+          throw new Error(`Insufficient stock for ${product.name}.`);
         }
       }
 
@@ -108,7 +114,7 @@ const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus
     );
     if (!updatedOrder) {
       throw new Error(
-        `Unable to update order. Current status: ${order.status}. It may have already been modified by another admin.`,
+        `Unable to update status. Current status: ${order.status}. It may have already been modified by another admin.`,
       );
     }
 
