@@ -8,7 +8,10 @@ const loginUser: RequestHandler = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'Logged in successfully.',
-      data: result,
+      data: {
+        token: result.token, //for jwt token
+        user: result.isUserExists,
+      },
     });
   } catch (err) {
     next(err);
