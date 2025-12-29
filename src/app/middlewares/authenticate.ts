@@ -1,7 +1,8 @@
 import { RequestHandler } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import { User } from '../modules/users/user_model';
 
-export const authenticate: RequestHandler = (req, res, next) => {
+export const authenticate: RequestHandler = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -10,11 +11,19 @@ export const authenticate: RequestHandler = (req, res, next) => {
 
   const token = authHeader.split(' ')[1];
 
+  let decoded;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-    req.user = decoded;
-    next();
-  } catch (error) {
+    decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+  } catch {
     return res.status(401).json({ message: 'Invalid token' });
   }
+
+  //check user exists / not blocked
+  const user = await User.findOne({ email: decoded.email });
+  if (!user) {
+    return res.status(401).json({ message: 'User is not found' });
+  }
+
+  req.user = decoded;
+  next();
 };

@@ -63,6 +63,11 @@ const userSchema = new Schema<TUser>(
   },
 );
 
+userSchema.pre(['find', 'findOne', 'findOneAndUpdate'], function (next) {
+  this.where({ isDeleted: { $ne: true } });
+  next();
+});
+
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) {
     return;
