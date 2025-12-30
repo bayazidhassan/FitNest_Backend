@@ -43,9 +43,8 @@ const refreshAccessToken = catchAsync(async (req, res) => {
 
 const logout = catchAsync(async (req, res) => {
   const { refreshToken } = req.cookies || {};
-  const email = req.user?.email;
-  if (refreshToken && email) {
-    await authServices.logoutIntoDB(refreshToken, email);
+  if (refreshToken) {
+    await authServices.logoutIntoDB(refreshToken);
   }
   //Clear cookie
   res.clearCookie('refreshToken', {

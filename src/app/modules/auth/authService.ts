@@ -49,10 +49,10 @@ const refreshAccessTokenIntoDB = async (refreshToken: string) => {
   return { token };
 };
 
-const logoutIntoDB = async (refreshToken: string, email: string): Promise<void> => {
+const logoutIntoDB = async (refreshToken: string): Promise<void> => {
   //Remove refreshToken from DB
   const result = await User.updateOne(
-    { email, refreshTokens: refreshToken },
+    { refreshTokens: refreshToken },
     { $pull: { refreshTokens: refreshToken } },
   );
   if (result.modifiedCount === 0) {
