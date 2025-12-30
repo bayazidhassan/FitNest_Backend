@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { User } from '../modules/users/user_model';
+import config from '../config';
 
 export const authenticate: RequestHandler = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -13,7 +14,7 @@ export const authenticate: RequestHandler = async (req, res, next) => {
 
   let decoded;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    decoded = jwt.verify(token, config.jwt_secret!) as JwtPayload;
   } catch {
     return res.status(401).json({ message: 'Invalid token!' });
   }

@@ -37,7 +37,7 @@ const refreshTokenIntoDB = async (refreshToken: string) => {
   }
 
   const token = createAccessToken({ email: user.email, role: user.role });
-  return token;
+  return {token};
 };
 
 export const authServices = {

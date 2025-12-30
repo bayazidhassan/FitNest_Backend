@@ -11,7 +11,7 @@ const loginUser: RequestHandler = async (req, res, next) => {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: config.node_env === 'production',
-      sameSite: 'none',
+      sameSite: config.node_env === 'production' ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -30,15 +30,16 @@ const loginUser: RequestHandler = async (req, res, next) => {
 
 const refreshToken = catchAsync(async (req, res) => {
   const { refreshToken } = req.cookies || {};
+  console.log(refreshToken);
   if (!refreshToken) {
     return res.status(401).json({ message: 'No refresh token.' });
   }
 
-  const token = await authServices.refreshTokenIntoDB(refreshToken);
+  const result = await authServices.refreshTokenIntoDB(refreshToken);
   res.status(200).json({
     success: true,
     message: 'Access token is retrieved successfully.',
-    data: { token },
+    data: result,
   });
 });
 
