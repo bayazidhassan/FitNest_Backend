@@ -26,7 +26,7 @@ const loginUserIntoDB = async (payload: TLoginInfo) => {
   const refreshToken = createRefreshToken({ email: isUserExists.email, role: isUserExists.role });
 
   //Save refresh token in DB
-  isUserExists.refreshToken!.push(refreshToken);
+  isUserExists.refreshTokens!.push(refreshToken);
   await isUserExists.save();
 
   return { token, refreshToken, isUserExists };
@@ -35,13 +35,13 @@ const loginUserIntoDB = async (payload: TLoginInfo) => {
 const refreshTokenIntoDB = async (refreshToken: string) => {
   const decoded = jwt.verify(refreshToken, config.jwt_refresh_secret!) as JwtPayload;
 
-  const user = await User.findOne({ email: decoded.email });
+  const user = await User.findOne({ email: decoded.email, refreshTokens: refreshToken });
   if (!user) {
-    throw new AppError(401, 'User is not found.');
+    throw new AppError(401, 'Refresh token not found.');
   }
 
   const token = createAccessToken({ email: user.email, role: user.role });
-  return {token};
+  return { token };
 };
 
 export const authServices = {

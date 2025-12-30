@@ -54,7 +54,7 @@ const userSchema = new Schema<TUser>(
       },
       default: 'user',
     },
-    refreshToken: {
+    refreshTokens: {
       type: [String], //store multiple refresh tokens
       default: [],
     },

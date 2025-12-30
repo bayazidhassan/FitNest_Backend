@@ -12,6 +12,6 @@ export type TUser = {
   image?: string;
   password: string;
   role: TRole;
-  refreshToken?: string[];
+  refreshTokens?: string[];
   isDeleted: boolean;
 };
