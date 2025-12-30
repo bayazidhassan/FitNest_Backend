@@ -1,5 +1,8 @@
 import bcrypt from 'bcrypt';
-import { generateToken } from '../../utils/jwt';
+import jwt, { JwtPayload } from 'jsonwebtoken';
+import config from '../../config';
+import AppError from '../../error/AppError';
+import { createAccessToken, createRefreshToken } from '../../utils/jwt';
 import { User } from '../users/user_model';
 import { TLoginInfo } from './authInterface';
 
@@ -17,12 +20,27 @@ const loginUserIntoDB = async (payload: TLoginInfo) => {
     throw new Error('Password does not match.');
   }
 
-  //for jwt token
-  const token = generateToken({ email: isUserExists.email, role: isUserExists.role });
+  //for access token
+  const token = createAccessToken({ email: isUserExists.email, role: isUserExists.role });
+  //for refresh token
+  const refreshToken = createRefreshToken({ email: isUserExists.email, role: isUserExists.role });
 
-  return { token, isUserExists };
+  return { token, refreshToken, isUserExists };
+};
+
+const refreshTokenIntoDB = async (refreshToken: string) => {
+  const decoded = jwt.verify(refreshToken, config.jwt_refresh_secret!) as JwtPayload;
+
+  const user = await User.findOne({ email: decoded.email });
+  if (!user) {
+    throw new AppError(401, 'User is not found.');
+  }
+
+  const token = createAccessToken({ email: user.email, role: user.role });
+  return token;
 };
 
 export const authServices = {
   loginUserIntoDB,
+  refreshTokenIntoDB,
 };

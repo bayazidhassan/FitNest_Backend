@@ -1,14 +1,18 @@
 import jwt from 'jsonwebtoken';
 import config from '../config';
 
-const JWT_SECRET = config.jwt_secret as string;
+export const createAccessToken = (payload: object) => {
+  return jwt.sign(payload, config.jwt_secret!, {
+    expiresIn: '15m',
+  });
+};
 
-export const generateToken = (payload: object) => {
-  return jwt.sign(payload, JWT_SECRET, {
+export const createRefreshToken = (payload: object) => {
+  return jwt.sign(payload, config.jwt_refresh_secret!, {
     expiresIn: '7d',
   });
 };
 
 export const verifyToken = (token: string) => {
-  return jwt.verify(token, JWT_SECRET);
+  return jwt.verify(token, config.jwt_secret!);
 };
