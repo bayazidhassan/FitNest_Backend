@@ -25,6 +25,10 @@ const loginUserIntoDB = async (payload: TLoginInfo) => {
   //for refresh token
   const refreshToken = createRefreshToken({ email: isUserExists.email, role: isUserExists.role });
 
+  //Save refresh token in DB
+  isUserExists.refreshToken!.push(refreshToken);
+  await isUserExists.save();
+
   return { token, refreshToken, isUserExists };
 };
 

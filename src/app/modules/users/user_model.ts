@@ -47,6 +47,7 @@ const userSchema = new Schema<TUser>(
     },
     role: {
       type: String,
+      //enum: ['admin', 'user'],
       enum: {
         values: role,
         message: 'Role must be user or admin',
