@@ -7,10 +7,7 @@ export const globalErrorHandler = (err: any, req: Request, res: Response, next: 
   let statusCode: number = 500;
   let message: string = 'Something went wrong!';
 
-  if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-    statusCode = 401;
-    message = 'Invalid token.';
-  } else if (err instanceof AppError) {
+  if (err instanceof AppError) {
     statusCode = err?.statusCode;
     message = err?.message;
   } else if (err instanceof Error) {

@@ -28,14 +28,12 @@ const loginUser: RequestHandler = async (req, res, next) => {
   }
 };
 
-const refreshToken = catchAsync(async (req, res) => {
+const refreshAccessToken = catchAsync(async (req, res) => {
   const { refreshToken } = req.cookies || {};
-  console.log(refreshToken);
   if (!refreshToken) {
     return res.status(401).json({ message: 'No refresh token.' });
   }
-
-  const result = await authServices.refreshTokenIntoDB(refreshToken);
+  const result = await authServices.refreshAccessTokenIntoDB(refreshToken);
   res.status(200).json({
     success: true,
     message: 'Access token is retrieved successfully.',
@@ -43,7 +41,26 @@ const refreshToken = catchAsync(async (req, res) => {
   });
 });
 
+const logout = catchAsync(async (req, res) => {
+  const { refreshToken } = req.cookies || {};
+  const email = req.user?.email;
+  if (refreshToken && email) {
+    await authServices.logoutIntoDB(refreshToken, email);
+  }
+  //Clear cookie
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: config.node_env === 'production',
+    sameSite: config.node_env === 'production' ? 'none' : 'lax',
+  });
+  res.status(200).json({
+    success: true,
+    message: 'Logged out successfully.',
+  });
+});
+
 export const authController = {
   loginUser,
-  refreshToken,
+  refreshAccessToken,
+  logout,
 };

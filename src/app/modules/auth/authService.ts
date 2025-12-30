@@ -26,14 +26,19 @@ const loginUserIntoDB = async (payload: TLoginInfo) => {
   const refreshToken = createRefreshToken({ email: isUserExists.email, role: isUserExists.role });
 
   //Save refresh token in DB
-  isUserExists.refreshTokens!.push(refreshToken);
+  isUserExists.refreshTokens?.push(refreshToken);
   await isUserExists.save();
 
   return { token, refreshToken, isUserExists };
 };
 
-const refreshTokenIntoDB = async (refreshToken: string) => {
-  const decoded = jwt.verify(refreshToken, config.jwt_refresh_secret!) as JwtPayload;
+const refreshAccessTokenIntoDB = async (refreshToken: string) => {
+  let decoded;
+  try {
+    decoded = jwt.verify(refreshToken, config.jwt_refresh_secret!) as JwtPayload;
+  } catch {
+    throw new AppError(401, 'Invalid or expired refresh token.');
+  }
 
   const user = await User.findOne({ email: decoded.email, refreshTokens: refreshToken });
   if (!user) {
@@ -44,7 +49,19 @@ const refreshTokenIntoDB = async (refreshToken: string) => {
   return { token };
 };
 
+const logoutIntoDB = async (refreshToken: string, email: string): Promise<void> => {
+  //Remove refreshToken from DB
+  const result = await User.updateOne(
+    { email, refreshTokens: refreshToken },
+    { $pull: { refreshTokens: refreshToken } },
+  );
+  if (result.modifiedCount === 0) {
+    throw new AppError(401, 'Refresh token not found.');
+  }
+};
+
 export const authServices = {
   loginUserIntoDB,
-  refreshTokenIntoDB,
+  refreshAccessTokenIntoDB,
+  logoutIntoDB,
 };
