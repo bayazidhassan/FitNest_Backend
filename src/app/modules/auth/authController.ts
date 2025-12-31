@@ -29,7 +29,7 @@ const loginUser: RequestHandler = async (req, res, next) => {
 };
 
 const refreshAccessToken = catchAsync(async (req, res) => {
-  const { refreshToken } = req.cookies || {};
+  const refreshToken = req.cookies?.refreshToken;
   if (!refreshToken) {
     return res.status(401).json({ message: 'No refresh token.' });
   }
@@ -41,24 +41,20 @@ const refreshAccessToken = catchAsync(async (req, res) => {
   });
 });
 
-const logout = catchAsync(async (req, res) => {
-  const { refreshToken } = req.cookies || {};
-  if (!refreshToken) {
-    return res.status(204).end(); //already logged out
+const logout: RequestHandler = async (req, res) => {
+  const refreshToken = req.cookies?.refreshToken;
+  if (refreshToken) {
+    //fire-and-forget (no await)
+    authServices.logoutIntoDB(refreshToken).catch(() => {});
   }
-  await authServices.logoutIntoDB(refreshToken);
-
-  //Clear cookie
+  //Clear cookie immediately
   res.clearCookie('refreshToken', {
     httpOnly: true,
     secure: config.node_env === 'production',
     sameSite: config.node_env === 'production' ? 'none' : 'lax',
   });
-  res.status(200).json({
-    success: true,
-    message: 'Logged out successfully.',
-  });
-});
+  return res.status(204).end();
+};
 
 export const authController = {
   loginUser,
