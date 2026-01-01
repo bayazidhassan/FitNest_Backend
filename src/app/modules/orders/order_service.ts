@@ -42,7 +42,7 @@ const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus
       throw new Error('Order has no cart items.');
     }
 
-    //Fast-exit: improve performance in multi-admin scenario
+    //Fast-exit: improve performance
     if (order.status !== fromStatus) {
       throw new Error(`Order status has already changed. Current status: ${order.status}.`);
     }
@@ -58,9 +58,12 @@ const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus
     if (!allowedTransitions[fromStatus]?.includes(toStatus)) {
       throw new Error(`Invalid status change from ${fromStatus} to ${toStatus}`);
     }
+    if (order.isAlreadyPaid && ['confirmed', 'cancelled', 'returned'].includes(toStatus)) {
+      throw new Error(`Paid order can't be ${toStatus}.`);
+    }
 
-    //====================== CONFIRM ORDER ======================
     if (toStatus === 'confirmed') {
+      //====================== CONFIRM ORDER ======================
       //check quantity <= stock_quantity----------------------------
       /*
       The bulkWrite-filter will check this condition in the next step, so this loop is technically redundant here.
