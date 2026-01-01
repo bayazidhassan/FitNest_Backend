@@ -64,6 +64,10 @@ const orderSchema = new Schema<TOrder>(
       type: Number,
       required: [true, 'Total price is required.'],
     },
+    isAlreadyPaid: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: String,
       enum: {
