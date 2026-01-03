@@ -1,4 +1,5 @@
 import { TCartItem, TOrderInfo } from '../../@types/orderInfo';
+import config from '../../config';
 import { stripe } from '../../utils/stripe';
 import { Order } from '../orders/order_model';
 
@@ -21,11 +22,14 @@ const createCheckoutSession = async (orderInfo: TOrderInfo) => {
     payment_method_types: ['card'],
     line_items,
     mode: 'payment',
-    //https://fit-nest-backend.vercel.app/api/v1
-    //success_url: `${process.env.CLIENT_URL}/checkout/successOrder`,
-    //cancel_url: `${process.env.CLIENT_URL}/checkout`,
-    success_url: 'http://localhost:5173/checkout/successOrder',
-    cancel_url: 'http://localhost:5173/checkout',
+    success_url:
+      config.node_env === 'production'
+        ? 'https://fitnestbd.netlify.app/checkout/successOrder'
+        : 'http://localhost:5173/checkout/successOrder',
+    cancel_url:
+      config.node_env === 'production'
+        ? 'https://fitnestbd.netlify.app/checkout'
+        : 'http://localhost:5173/checkout',
     metadata: { orderId: order._id.toString() },
   });
 
