@@ -6,7 +6,7 @@ const placeOrder = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Order is placed successful.',
+    message: 'Order placed successfully!',
     data: result,
   });
 });

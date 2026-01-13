@@ -36,11 +36,23 @@ const stripeWebhook = catchAsync(async (req, res) => {
     return res.status(200).json({ received: true });
   } catch (err) {
     console.error('Webhook handler failed:', err);
-    return res.status(500).json({ error: 'Webhook handler failed' });
+    return res.status(500).json({ error: 'Webhook handler failed.' });
   }
+});
+
+export const getOrderIdByStripeSession = catchAsync(async (req, res) => {
+  const { sessionId } = req.params;
+  const orderId = await paymentService.getOrderIdByStripeSession(sessionId);
+
+  res.status(200).json({
+    success: true,
+    message: 'Order Id retrieved successfully.',
+    data: orderId,
+  });
 });
 
 export const paymentController = {
   createCheckoutSession,
   stripeWebhook,
+  getOrderIdByStripeSession,
 };
