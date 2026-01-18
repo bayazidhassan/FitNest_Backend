@@ -1,9 +1,11 @@
+import { TRole } from '../../@types/role';
+
 export type TUserName = {
   firstName: string;
   lastName: string;
 };
 
-export type TRole = 'admin' | 'user';
+//export type TRole = 'admin' | 'user';
 
 export type TUser = {
   name: TUserName;
