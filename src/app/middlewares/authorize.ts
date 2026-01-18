@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { TRole } from '../modules/users/user_interface';
+import { TRole } from '../@types/role';
 
 export const authorize = (...roles: TRole[]): RequestHandler => {
   return (req, res, next) => {
