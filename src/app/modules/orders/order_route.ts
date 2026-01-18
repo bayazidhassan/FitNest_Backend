@@ -6,7 +6,12 @@ import { orderController } from './order_controller';
 
 const router = express.Router();
 
-router.post('/placeOrder', authenticate, authorize(ROLES.USER), orderController.placeOrder);
+router.post(
+  '/placeOrder',
+  authenticate,
+  authorize(ROLES.USER, ROLES.ADMIN),
+  orderController.placeOrder,
+);
 router.get(
   '/byStatus/:status',
   authenticate,
