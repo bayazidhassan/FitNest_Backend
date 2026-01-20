@@ -43,6 +43,19 @@ const getAProductsFromDB = async (id: string) => {
   return result;
 };
 
+const getProductsBySearchFromDB = async (searchText: string) => {
+  const result = await Product.find({
+    $or: [
+      { name: { $regex: searchText, $options: 'i' } },
+      { category: { $regex: searchText, $options: 'i' } },
+    ],
+  });
+  // if (!result.length) {
+  //   throw new Error('Products are not found.');
+  // }
+  return result;
+};
+
 const getFeaturedProductsFromDB = async () => {
   const result = await Product.find().limit(4);
   if (!result.length) {
@@ -130,6 +143,7 @@ const deleteAProductFromDB = async (id: string) => {
 export const productService = {
   getAllProductsFromDB,
   getAProductsFromDB,
+  getProductsBySearchFromDB,
   getFeaturedProductsFromDB,
   getAllCategoriesFromDB,
   createNewProductIntoDB,

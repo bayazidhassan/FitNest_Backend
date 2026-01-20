@@ -49,6 +49,17 @@ const getAProducts: RequestHandler = async (req, res) => {
   }
 };
 
+const getProductsBySearch = catchAsync(async (req, res) => {
+  const searchText = req.query.searchText as string;
+  const result = await productService.getProductsBySearchFromDB(searchText);
+
+  res.status(200).json({
+    success: true,
+    message: 'Searched products are retrieved successfully.',
+    data: result,
+  });
+});
+
 const getFeaturedProducts: RequestHandler = async (req, res) => {
   try {
     const result = await productService.getFeaturedProductsFromDB();
@@ -109,6 +120,7 @@ const deleteAProduct = catchAsync(async (req, res) => {
 export const productController = {
   getAllProducts,
   getAProducts,
+  getProductsBySearch,
   getFeaturedProducts,
   getAllCategories,
   createNewProduct,
