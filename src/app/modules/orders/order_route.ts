@@ -8,8 +8,8 @@ const router = express.Router();
 
 router.post(
   '/placeOrder',
-  authenticate,
-  authorize(ROLES.USER, ROLES.ADMIN),
+  // authenticate,
+  // authorize(ROLES.USER, ROLES.ADMIN),
   orderController.placeOrder,
 );
 router.get(
