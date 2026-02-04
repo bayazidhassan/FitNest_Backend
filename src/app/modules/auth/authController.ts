@@ -56,8 +56,35 @@ const logout: RequestHandler = async (req, res) => {
   return res.status(204).end();
 };
 
+const googleLogin: RequestHandler = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    if (!token) throw new Error('Google token is required.');
+
+    //Call service to handle Google login
+    const { accessToken, refreshToken, user } = await authServices.googleLogin(token);
+
+    //Set refresh token cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Logged in with Google successfully.',
+      data: { token: accessToken, user },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const authController = {
   loginUser,
   refreshAccessToken,
   logout,
+  googleLogin,
 };

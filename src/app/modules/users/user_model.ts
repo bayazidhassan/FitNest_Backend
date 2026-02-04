@@ -30,7 +30,7 @@ const userSchema = new Schema<TUser>(
     },
     phone: {
       type: String,
-      required: [true, 'Phone no. is required.'],
+      //required: [true, 'Phone no. is required.'], //for google login
     },
     email: {
       type: String,
@@ -43,7 +43,7 @@ const userSchema = new Schema<TUser>(
     },
     password: {
       type: String,
-      required: [true, 'Password is required.'],
+      //required: [true, 'Password is required.'], //for google login
       select: false,
     },
     role: {

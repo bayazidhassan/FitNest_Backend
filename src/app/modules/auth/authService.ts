@@ -1,10 +1,13 @@
 import bcrypt from 'bcrypt';
+import { OAuth2Client } from 'google-auth-library';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import config from '../../config';
 import AppError from '../../error/AppError';
 import { createAccessToken, createRefreshToken } from '../../utils/jwt';
 import { User } from '../users/user_model';
 import { TLoginInfo } from './authInterface';
+
+const client = new OAuth2Client(config.google_client_id);
 
 const loginUserIntoDB = async (payload: TLoginInfo) => {
   const { email, password } = payload;
@@ -54,8 +57,48 @@ const logoutIntoDB = async (refreshToken: string): Promise<void> => {
   await User.updateOne({ refreshTokens: refreshToken }, { $pull: { refreshTokens: refreshToken } });
 };
 
+const googleLogin = async (token: string) => {
+  //Verify token with Google
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: config.google_client_id,
+  });
+
+  const payload = ticket.getPayload();
+  if (!payload) {
+    throw new Error('Invalid Google token.');
+  }
+  const { email, name, picture } = payload;
+  const [firstName, ...lastName] = (name || '').split(' ');
+
+  //Check if user exists
+  let user = await User.findOne({ email });
+  if (!user) {
+    user = await User.create({
+      name: {
+        firstName: firstName || '',
+        lastName: lastName.join(' ') || '',
+      },
+      email,
+      role: 'user',
+      image: picture,
+    });
+  }
+
+  //Generate JWT tokens
+  const accessToken = createAccessToken({ email: user.email, role: user.role });
+  const refreshToken = createRefreshToken({ email: user.email, role: user.role });
+
+  //Save refresh token
+  user.refreshTokens?.push(refreshToken);
+  await user.save();
+
+  return { accessToken, refreshToken, user };
+};
+
 export const authServices = {
   loginUserIntoDB,
   refreshAccessTokenIntoDB,
   logoutIntoDB,
+  googleLogin,
 };
