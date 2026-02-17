@@ -59,6 +59,10 @@ const userSchema = new Schema<TUser>(
       type: [String], //store multiple refresh tokens
       default: [],
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
     isDeleted: {
       type: Boolean,
       default: false,

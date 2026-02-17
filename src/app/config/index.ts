@@ -5,9 +5,10 @@ dotenv.config({ path: path.join(process.cwd(), '.env') });
 
 export default {
   node_env: process.env.NODE_ENV,
-  client_url: process.env.CLIENT_URL,
   port: process.env.PORT,
   database_url: process.env.DATABASE_URL,
+  client_url: process.env.CLIENT_URL,
+  server_url: process.env.SERVER_URL,
   admin_email: process.env.Admin_Email,
   jwt_secret: process.env.JWT_SECRET,
   jwt_refresh_secret: process.env.JWT_REFRESH_SECRET,
@@ -18,4 +19,7 @@ export default {
   stripe_secret_key: process.env.STRIPE_SECRET_KEY,
   stripe_webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
   google_client_id: process.env.GOOGLE_CLIENT_ID,
+  google_app_email: process.env.APP_EMAIL,
+  google_app_password: process.env.APP_PASSWORD,
+  jwt_email_secret: process.env.JWT_EMAIL_SECRET,
 };

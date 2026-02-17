@@ -15,5 +15,6 @@ export type TUser = {
   password: string;
   role: TRole;
   refreshTokens?: string[];
+  isVerified: boolean;
   isDeleted: boolean;
 };

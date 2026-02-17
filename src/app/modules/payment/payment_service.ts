@@ -22,14 +22,8 @@ const createCheckoutSession = async (orderInfo: TOrderInfo) => {
     payment_method_types: ['card'],
     line_items,
     mode: 'payment',
-    success_url:
-      config.node_env === 'production'
-        ? `${config.client_url}/checkout/successOrder?session_id={CHECKOUT_SESSION_ID}`
-        : 'http://localhost:5173/checkout/successOrder?session_id={CHECKOUT_SESSION_ID}',
-    cancel_url:
-      config.node_env === 'production'
-        ? `${config.client_url}/checkout`
-        : 'http://localhost:5173/checkout',
+    success_url: `${config.client_url}/checkout/successOrder?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${config.client_url}/checkout`,
     metadata: { orderId: order._id.toString() },
   });
 

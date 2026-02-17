@@ -15,12 +15,16 @@ const loginUserIntoDB = async (payload: TLoginInfo) => {
   //is user exists or not
   const isUserExists = await User.findOne({ email }).select('+password');
   if (!isUserExists) {
-    throw new Error('User is not found.');
+    throw new Error('Invalid Email or Password!');
+  }
+  //check email is verified or not
+  if (!isUserExists.isVerified) {
+    throw new AppError(403, 'Please verify your email first.');
   }
 
   const isPasswordMatched = await bcrypt.compare(password, isUserExists.password);
   if (!isPasswordMatched) {
-    throw new Error('Password does not match.');
+    throw new Error('Invalid Email or Password!');
   }
 
   //for access token
