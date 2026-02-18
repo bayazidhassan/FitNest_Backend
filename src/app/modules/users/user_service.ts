@@ -9,7 +9,7 @@ import { User } from './user_model';
 const registerUserIntoDB = async (payload: TUser, buffer?: Buffer) => {
   const existingUser = await User.findOne({ email: payload.email });
   if (existingUser) {
-    throw new AppError(400, 'User already exists.');
+    throw new AppError(400, 'User already exists!');
   }
 
   let imageUrl: string | undefined;
@@ -22,7 +22,7 @@ const registerUserIntoDB = async (payload: TUser, buffer?: Buffer) => {
   const userInfo = { ...payload, image: imageUrl, isVerified: false };
   const user = await User.create(userInfo);
   if (!user) {
-    throw new AppError(400, 'Failed to register.');
+    throw new AppError(400, 'Failed to register!');
   }
 
   //create email verification token
@@ -34,8 +34,7 @@ const registerUserIntoDB = async (payload: TUser, buffer?: Buffer) => {
   const subject = 'Verify Your Email.';
   const htmlMessage = `
       <h3>Welcome to FitNest</h3>
-      <p>Please verify your email within 1 hour:</p>
-      <a href="${verificationLink}">Verify Email</a>
+      <p>Please verify your email within 1 hour: <a href="${verificationLink}">Verify Email</a></p>
     `;
 
   //send to email

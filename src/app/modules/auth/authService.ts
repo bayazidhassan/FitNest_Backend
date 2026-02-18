@@ -27,25 +27,19 @@ const loginUserIntoDB = async (payload: TLoginInfo) => {
     throw new Error('Invalid Email or Password!');
   }
 
-  //for access token
-  const token = createAccessToken({ email: isUserExists.email, role: isUserExists.role });
-  //for refresh token
+  //generate JWT tokens
+  const accessToken = createAccessToken({ email: isUserExists.email, role: isUserExists.role });
   const refreshToken = createRefreshToken({ email: isUserExists.email, role: isUserExists.role });
 
-  //Save refresh token in DB
+  //save refresh token in DB
   isUserExists.refreshTokens?.push(refreshToken);
   await isUserExists.save();
 
-  return { token, refreshToken, isUserExists };
+  return { accessToken, refreshToken, isUserExists };
 };
 
 const refreshAccessTokenIntoDB = async (refreshToken: string) => {
-  let decoded;
-  try {
-    decoded = jwt.verify(refreshToken, config.jwt_refresh_secret!) as JwtPayload;
-  } catch {
-    throw new AppError(401, 'Invalid or expired refresh token.');
-  }
+  const decoded = jwt.verify(refreshToken, config.jwt_refresh_secret as string) as JwtPayload;
 
   const user = await User.findOne({ email: decoded.email, refreshTokens: refreshToken });
   if (!user) {
@@ -57,12 +51,12 @@ const refreshAccessTokenIntoDB = async (refreshToken: string) => {
 };
 
 const logoutIntoDB = async (refreshToken: string): Promise<void> => {
-  //Remove refreshToken from DB
+  //remove refreshToken from DB
   await User.updateOne({ refreshTokens: refreshToken }, { $pull: { refreshTokens: refreshToken } });
 };
 
 const googleLogin = async (token: string) => {
-  //Verify token with Google
+  //verify token with Google
   const ticket = await client.verifyIdToken({
     idToken: token,
     audience: config.google_client_id,
@@ -75,7 +69,7 @@ const googleLogin = async (token: string) => {
   const { email, name, picture } = payload;
   const [firstName, ...lastName] = (name || '').split(' ');
 
-  //Check if user exists
+  //check if user exists
   let user = await User.findOne({ email });
   if (!user) {
     user = await User.create({
@@ -86,14 +80,15 @@ const googleLogin = async (token: string) => {
       email,
       role: 'user',
       image: picture,
+      isVerified: true,
     });
   }
 
-  //Generate JWT tokens
+  //generate JWT tokens
   const accessToken = createAccessToken({ email: user.email, role: user.role });
   const refreshToken = createRefreshToken({ email: user.email, role: user.role });
 
-  //Save refresh token
+  //save refresh token
   user.refreshTokens?.push(refreshToken);
   await user.save();
 
