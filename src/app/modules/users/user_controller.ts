@@ -28,7 +28,18 @@ const verifyEmail = catchAsync(async (req, res) => {
   res.redirect(`${config.client_url}/login`);
 });
 
+const totalUser = catchAsync(async (req, res) => {
+  const result = await userServices.totalUserFromDB();
+
+  res.status(200).json({
+    success: true,
+    message: 'Total user count successfully.',
+    data: result,
+  });
+});
+
 export const userController = {
   registerUser,
   verifyEmail,
+  totalUser,
 };

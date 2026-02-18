@@ -117,6 +117,16 @@ const deleteAProduct = catchAsync(async (req, res) => {
   });
 });
 
+const totalProducts = catchAsync(async (req, res) => {
+  const result = await productService.totalProductsFromDB();
+
+  res.status(200).json({
+    success: true,
+    message: 'Total products count successfully.',
+    data: result,
+  });
+});
+
 export const productController = {
   getAllProducts,
   getAProducts,
@@ -126,4 +136,5 @@ export const productController = {
   createNewProduct,
   updateAProduct,
   deleteAProduct,
+  totalProducts,
 };

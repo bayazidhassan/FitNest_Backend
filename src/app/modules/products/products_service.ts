@@ -140,6 +140,11 @@ const deleteAProductFromDB = async (id: string) => {
   return result;
 };
 
+const totalProductsFromDB = async () => {
+  const result = await Product.countDocuments();
+  return result;
+};
+
 export const productService = {
   getAllProductsFromDB,
   getAProductsFromDB,
@@ -149,4 +154,5 @@ export const productService = {
   createNewProductIntoDB,
   updateAProductIntoDB,
   deleteAProductFromDB,
+  totalProductsFromDB,
 };

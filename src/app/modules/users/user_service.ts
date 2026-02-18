@@ -60,7 +60,13 @@ const verifyEmail = async (token: string) => {
   return user;
 };
 
+const totalUserFromDB = async () => {
+  const result = await User.countDocuments();
+  return result;
+};
+
 export const userServices = {
   registerUserIntoDB,
   verifyEmail,
+  totalUserFromDB,
 };
