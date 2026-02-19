@@ -33,8 +33,18 @@ const updateOrderStatus = catchAsync(async (req, res) => {
   });
 });
 
+const orderStats = catchAsync(async (req, res) => {
+  const stats = await orderService.orderStatsService();
+
+  res.status(200).json({
+    success: true,
+    data: stats,
+  });
+});
+
 export const orderController = {
   placeOrder,
   getOrdersByStatus,
   updateOrderStatus,
+  orderStats,
 };

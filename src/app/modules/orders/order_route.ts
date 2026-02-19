@@ -12,6 +12,7 @@ router.post(
   // authorize(ROLES.USER, ROLES.ADMIN),
   orderController.placeOrder,
 );
+router.get('/orderStats', orderController.orderStats);
 router.get(
   '/byStatus/:status',
   authenticate,

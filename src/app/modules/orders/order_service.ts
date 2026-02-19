@@ -131,8 +131,58 @@ const updateOrderStatusIntoDB = async (id: string, fromStatus: TStatus, toStatus
   }
 };
 
+const orderStatsService = async () => {
+  const stats = await Order.aggregate([
+    {
+      $group: {
+        _id: '$status',
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const formattedStats: Record<string, number> = {
+    totalOrders: 0,
+    pendingOrders: 0,
+    confirmedOrders: 0,
+    processingOrders: 0,
+    shippedOrders: 0,
+    deliveredOrders: 0,
+    cancelledOrders: 0, //cancelled + returned
+  };
+
+  stats.forEach((item) => {
+    formattedStats.totalOrders += item.count;
+
+    switch (item._id) {
+      case 'pending':
+        formattedStats.pendingOrders = item.count;
+        break;
+      case 'confirmed':
+        formattedStats.confirmedOrders = item.count;
+        break;
+      case 'processing':
+        formattedStats.processingOrders = item.count;
+        break;
+      case 'shipped':
+        formattedStats.shippedOrders = item.count;
+        break;
+      case 'delivered':
+        formattedStats.deliveredOrders = item.count;
+        break;
+      case 'cancelled':
+      case 'returned': //combine returned into cancelled
+        formattedStats.cancelledOrders += item.count;
+        break;
+    }
+  });
+
+  return formattedStats;
+};
+
 export const orderService = {
   placeOrderIntoDB,
   getOrdersByStatusFromDB,
   updateOrderStatusIntoDB,
+  orderStatsService,
 };
